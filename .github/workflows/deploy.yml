@@ -1,0 +1,27 @@
+name: poc-pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy-qa:
+        type: boolean
+        description: ¿Do you want to deploy to QA?
+        default: true
+      deploy-prd:
+        type: boolean
+        description: ¿Do you want to deploy to PRD?
+        default: false
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+      - run: |
+          echo "deployQA: $DEPLOY_QA"
+          echo "${{github.base_ref}}"
+          echo "${{github.ref}}"
+        env:
+          DEPLOY_QA: ${{ inputs.deploy-qa }}
+      
