@@ -1,19 +1,22 @@
 name: poc-pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      deploy-qa:
-        type: boolean
-        description: ¿Do you want to deploy to QA?
-        default: true
-      deploy-prd:
-        type: boolean
-        description: ¿Do you want to deploy to PRD?
-        default: false
+  pull_request:
+    types: [labeled]
+  # workflow_dispatch:
+  #   inputs:
+  #     deploy-qa:
+  #       type: boolean
+  #       description: ¿Do you want to deploy to QA?
+  #       default: true
+  #     deploy-prd:
+  #       type: boolean
+  #       description: ¿Do you want to deploy to PRD?
+  #       default: false
 
 jobs:
   init:
+    if: contains( github.event.label.name, 'deploy dev')
     runs-on: ubuntu-latest
     env:
         DEPLOY_PRD: ${{ inputs.deploy-prd }}
@@ -26,16 +29,26 @@ jobs:
           echo $GITHUB_BASE_REF
           echo $GITHUB_ACTOR
           echo $GITHUB_EVENT_NAME
+          
+      - id: automerge
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.15.5"
+        env:
+          MERGE_DELETE_BRANCH: true
+          MERGE_LABELS: "dependencies"
+          MERGE_METHOD: "merge"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Checkout repository code
-        uses: actions/checkout@v3
+      # - name: Checkout repository code
+      #   uses: actions/checkout@v3
 
-      - name: Merge actual branch -> master
-        # if:  ${{ env.DEPLOY_PRD == true && ( github.ref != 'refs/heads/master' || github.base_ref == 'refs/heads/master' ) }}
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          target_branch: master
-          github_token: ${{ github.token }}
+      # - name: Merge actual branch -> master
+      #   # if:  ${{ env.DEPLOY_PRD == true && ( github.ref != 'refs/heads/master' || github.base_ref == 'refs/heads/master' ) }}
+      #   uses: devmasx/merge-branch@master
+      #   with:
+      #     type: now
+      #     target_branch: master
+      #     github_token: ${{ github.token }}
+      # probably is better delete deploy dev label..
         
       
